@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo — Estúdio Emily Lima</title>
+<meta name="theme-color" content="#C0486E">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-AzwrX73Xd31Pmqlc6sPBNDYqzGJhBwU",
+    authDomain: "estudio-emilylima.firebaseapp.com",
+    projectId: "estudio-emilylima",
+    storageBucket: "estudio-emilylima.firebasestorage.app",
+    messagingSenderId: "1032780129729",
+    appId: "1:1032780129729:web:88be26c940cc6984ee3b40"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  window._cat = { db, doc, getDoc, addDoc, collection, serverTimestamp };
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Inter,sans-serif;background:#FAF7F8;color:#180F14;min-height:100vh;}
+:root{
+  --accent:#C0486E;--accent-dark:#8C2B48;
+  --green:#1A7448;--red:#B02020;--orange:#B86010;
+  --text:#180F14;--muted:#8A6E78;--border:#E8DDE2;
+  --surface:#fff;--surface-alt:#F4EEF1;--shadow:rgba(192,72,110,0.09);
+}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;padding:44px 20px 36px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;width:260px;height:260px;border-radius:50%;border:1.5px solid rgba(255,255,255,.1);top:-60px;right:-60px;pointer-events:none;}
+.hero::after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;border:1.5px solid rgba(255,255,255,.07);bottom:-40px;left:-40px;pointer-events:none;}
+.hero-logo{width:72px;height:72px;border-radius:20px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 14px;backdrop-filter:blur(8px);}
+.hero-name{font-size:26px;font-weight:800;margin-bottom:6px;}
+.hero-sub{font-size:14px;opacity:.82;margin-bottom:14px;}
+.hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:4px;}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;font-size:12px;backdrop-filter:blur(4px);}
+
+/* CONTAINER */
+.container{max-width:900px;margin:0 auto;padding:0 16px;}
+.section{padding:28px 0 8px;}
+
+/* CATEGORIES */
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:24px;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat-btn{padding:8px 18px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;white-space:nowrap;transition:all .2s;flex-shrink:0;background:var(--surface-alt);color:var(--muted);}
+.cat-btn.active{background:var(--accent);color:#fff;}
+
+/* SERVICE CARDS */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;}
+.svc-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 2px 12px var(--shadow);transition:transform .2s,box-shadow .2s;cursor:pointer;}
+.svc-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px var(--shadow);}
+.svc-img{height:110px;display:flex;align-items:center;justify-content:center;font-size:46px;}
+.svc-body{padding:16px;}
+.svc-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.svc-cat{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.svc-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.svc-footer{display:flex;justify-content:space-between;align-items:center;}
+.svc-price{font-size:20px;font-weight:800;color:var(--accent);}
+.svc-dur{font-size:11px;color:var(--muted);margin-top:2px;}
+.btn-agendar{padding:9px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.btn-agendar:hover{opacity:.85;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+@media(min-width:600px){.modal-overlay{align-items:center;padding:16px;}}
+.modal-box{background:var(--surface);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:28px 22px 36px;max-height:92vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.2);}
+@media(min-width:600px){.modal-box{border-radius:20px;}}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px;}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.modal-title{font-size:18px;font-weight:800;color:var(--text);}
+.modal-close{background:var(--surface-alt);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;color:var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+
+/* FORM */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
+.field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-alt);color:var(--text);font-size:14px;outline:none;font-family:inherit;transition:border-color .2s;box-sizing:border-box;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:400px){.form-row{grid-template-columns:1fr;}}
+
+/* STEPS */
+.steps{display:flex;gap:6px;margin-bottom:20px;}
+.step{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s;}
+.step.active{background:var(--accent);}
+
+/* SUMMARY BOX */
+.summary-box{background:var(--surface-alt);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:18px;}
+.srow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;}
+.srow:last-child{margin-bottom:0;}
+.srow-label{color:var(--muted);}
+.srow-val{font-weight:700;color:var(--text);}
+.srow-price{font-size:22px;font-weight:800;color:var(--accent);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;transition:opacity .15s,transform .1s;width:100%;margin-bottom:10px;}
+.btn:hover{opacity:.85;transform:translateY(-1px);}
+.btn:last-child{margin-bottom:0;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-whatsapp{background:#25D366;color:#fff;}
+.btn-secondary{background:var(--surface-alt);color:var(--text);border:1.5px solid var(--border);}
+
+/* SUCCESS */
+.success-box{text-align:center;padding:28px 12px;}
+.success-icon{font-size:64px;margin-bottom:14px;animation:pop .4s ease;}
+@keyframes pop{0%{transform:scale(0);}70%{transform:scale(1.15);}100%{transform:scale(1);}}
+.success-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.confirm-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;text-align:left;}
+.ccard-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
+.ccard-row:last-child{margin-bottom:0;}
+.ccard-icon{font-size:18px;margin-top:1px;flex-shrink:0;}
+.ccard-text{font-size:13px;color:var(--text);line-height:1.5;}
+.ccard-text b{color:var(--accent);}
+
+/* LOADER */
+.loader{text-align:center;padding:60px 24px;color:var(--muted);}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;color:#fff;z-index:999;display:none;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;animation:fadeIn .3s ease;}
+#toast.show{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 24px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--muted);}
+
+/* FOOTER */
+.footer{background:var(--accent-dark);color:rgba(255,255,255,.7);text-align:center;padding:24px;font-size:12px;margin-top:40px;}
+.footer-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}
+
+/* SLOTS GRID */
+.slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+@media(max-width:360px){.slots-grid{grid-template-columns:repeat(3,1fr);}}
+.slot-btn{padding:9px 4px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface-alt);color:var(--text);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s;text-align:center;}
+.slot-btn:hover{border-color:var(--accent);background:rgba(192,72,110,.08);}
+.slot-btn.selected{border-color:var(--accent);background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading" class="loader">
+  <div class="spinner"></div>
+  <div>Carregando catálogo...</div>
+</div>
+
+<!-- MAIN -->
+<div id="main-content" style="display:none;">
+  <div class="hero" id="hero">
+    <div style="position:relative;z-index:1;">
+      <div class="hero-logo">💄</div>
+      <div class="hero-name" id="hero-name">Estúdio</div>
+      <div class="hero-sub">Agende seu horário com facilidade ✨</div>
+      <div class="hero-chips" id="hero-chips"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+      <div class="cats" id="cats"></div>
+      <div id="services-grid" class="services-grid"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-name" id="footer-name">Estúdio Emily Lima</div>
+    <div id="footer-addr"></div>
+    <div style="margin-top:8px;font-size:11px;opacity:.6;">Sistema de agendamento online</div>
+  </div>
+</div>
+
+<!-- ERROR -->
+<div id="error-screen" style="display:none;text-align:center;padding:60px 24px;">
+  <div style="font-size:48px;margin-bottom:12px;">😕</div>
+  <div style="font-size:18px;font-weight:700;color:#180F14;margin-bottom:8px;">Catálogo não encontrado</div>
+  <div style="font-size:14px;color:#8A6E78;">Verifique o link e tente novamente.</div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+
+    <!-- STEP 0: Serviço selecionado -->
+    <div id="step-0">
+      <div class="modal-header">
+        <div class="modal-title" id="s0-title">Agendar</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="summary-box" id="s0-summary"></div>
+      <button class="btn btn-primary" onclick="goStep(1)">📅 Escolher Data e Horário →</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+
+    <!-- STEP 1: Data e horário -->
+    <div id="step-1" style="display:none;">
+      <div class="steps"><div class="step active"></div><div class="step" id="s2-dot"></div><div class="step" id="s3-dot"></div></div>
+      <div class="modal-header">
+        <div class="modal-title">📅 Data e Horário</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="field"><label>Data *</label><input id="b-date" type="date" onchange="loadSlots()"></div>
+      <div class="field"><label>Horário disponível *</label></div>
+      <div class="slots-grid" id="slots-grid"></div>
+      <input type="hidden" id="b-time">
+      <div style="margin-top:16px;"></div>
+      <button class="btn btn-primary" onclick="goStep2()">Próximo →</button>
+      <button class="btn btn-secondary" onclick="goStep(0)">← Voltar</button>
+    </div>
+
+    <!-- STEP 2: Dados do cliente -->
+    <div id="step-2" style="display:none;">
+      <div class="steps"><div class="step active"></div><div class="step active"></div><div class="step" id="s3-dot2"></div></div>
+      <div class="modal-header">
+        <div class="modal-title">👤 Seus Dados</div>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="field"><label>Nome completo *</label><input id="b-name" placeholder="Seu nome completo"></div>
+      <div class="field"><label>WhatsApp *</label><input id="b-phone" type="tel" placeholder="(11) 99999-0000" oninput="maskPhone(this)"></div>
+      <div class="field"><label>E-mail (opcional)</label><input id="b-email" type="email" placeholder="seu@email.com"></div>
+      <div class="field"><label>Observações</label><textarea id="b-notes" rows="2" placeholder="Alergias, dúvidas, preferências..."></textarea></div>
+      <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()">✅ Confirmar Agendamento</button>
+      <button class="btn btn-secondary" onclick="goStep(1)">← Voltar</button>
+    </div>
+
+    <!-- STEP 3: Sucesso -->
+    <div id="step-3" style="display:none;">
+      <div class="success-box">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Agendado com Sucesso!</div>
+        <div class="success-sub">Seu horário foi reservado! Clique abaixo para receber a confirmação pelo WhatsApp.</div>
+        <div class="confirm-card" id="confirm-card"></div>
+        <button class="btn btn-whatsapp" id="btn-wa-client">💬 Receber Confirmação no WhatsApp</button>
+        <button class="btn btn-secondary" onclick="resetAndClose()">Fazer Outro Agendamento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── state ─────────────────────────────────────────────────────
+let CAT=null, studioId='', catalogData=null, selectedSvc=null;
+let bDate='', bTime='', bName='', bPhone='', bEmail='', bNotes='';
+
+function waitFB(cb){if(window._cat){CAT=window._cat;cb();}else setTimeout(()=>waitFB(cb),80);}
+
+// ── init ──────────────────────────────────────────────────────
+waitFB(async()=>{
+  const params=new URLSearchParams(window.location.search);
+  studioId=params.get('id')||'';
+  if(!studioId){showError();return;}
+  try{
+    const snap=await CAT.getDoc(CAT.doc(CAT.db,'catalogs',studioId));
+    if(!snap.exists()){showError();return;}
+    catalogData=snap.data();
+    renderCatalog();
+  }catch(e){showError();}
+});
+
+function showError(){document.getElementById('loading').style.display='none';document.getElementById('error-screen').style.display='block';}
+function fmt(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
+
+// ── RENDER CATALOG ─────────────────────────────────────────────
+function renderCatalog(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('main-content').style.display='block';
+  const d=catalogData;
+  document.title=(d.companyName||'Estúdio')+' — Agendar';
+  document.getElementById('hero-name').textContent=d.companyName||'Estúdio';
+  document.getElementById('footer-name').textContent=d.companyName||'Estúdio Emily Lima';
+  if(d.address)document.getElementById('footer-addr').textContent=d.address;
+
+  // hero chips
+  const chips=[];
+  if(d.address)chips.push('📍 '+d.address);
+  if(d.whatsapp||d.phone)chips.push('📞 '+(d.whatsapp||d.phone));
+  if(d.instagram)chips.push('📸 '+d.instagram);
+  document.getElementById('hero-chips').innerHTML=chips.map(c=>`<div class="hero-chip">${c}</div>`).join('');
+
+  renderServices('Todos');
+}
+
+function renderServices(cat){
+  const services=catalogData.services||[];
+  const cats=['Todos',...new Set(services.map(s=>s.category).filter(Boolean))];
+  document.getElementById('cats').innerHTML=cats.map(c=>`<button class="cat-btn${c===cat?' active':''}" onclick="renderServices('${c}')">${c}</button>`).join('');
+
+  const list=cat==='Todos'?services:services.filter(s=>s.category===cat);
+  const emojis={Sobrancelhas:'🌿',Cílios:'✨',Estética:'💆',Pigmentação:'🎨',Cabelo:'💇',Outros:'✂️'};
+
+  if(!list.length){
+    document.getElementById('services-grid').innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">✂️</div><div class="empty-title">Nenhum serviço</div><div class="empty-sub">Nenhum serviço disponível nesta categoria.</div></div>`;
+    return;
+  }
+
+  document.getElementById('services-grid').innerHTML=list.map(s=>`
+    <div class="svc-card" onclick="openBooking('${s.id}')">
+      <div class="svc-img" style="background:linear-gradient(135deg,rgba(192,72,110,.15),rgba(192,72,110,.05));">${emojis[s.category]||'✂️'}</div>
+      <div class="svc-body">
+        <div class="svc-name">${s.name}</div>
+        <div class="svc-cat">${s.category||''}</div>
+        ${s.description?`<div class="svc-desc">${s.description}</div>`:''}
+        <div class="svc-footer">
+          <div><div class="svc-price">R$ ${fmt(s.price)}</div><div class="svc-dur">⏱ ${s.duration||0} minutos</div></div>
+          <button class="btn-agendar" onclick="event.stopPropagation();openBooking('${s.id}')">Agendar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── BOOKING ───────────────────────────────────────────────────
+function openBooking(id){
+  selectedSvc=(catalogData.services||[]).find(s=>s.id===id);
+  if(!selectedSvc)return;
+
+  // set min date
+  const today=new Date().toISOString().split('T')[0];
+  const dateEl=document.getElementById('b-date');
+  dateEl.min=today;
+  dateEl.value=today;
+
+  // summary
+  document.getElementById('s0-title').textContent=selectedSvc.name;
+  document.getElementById('s0-summary').innerHTML=`
+    <div class="srow"><span class="srow-label">Serviço</span><span class="srow-val">${selectedSvc.name}</span></div>
+    <div class="srow"><span class="srow-label">Duração</span><span class="srow-val">⏱ ${selectedSvc.duration||0} minutos</span></div>
+    <div class="srow"><span class="srow-label">Valor</span><span class="srow-price">R$ ${fmt(selectedSvc.price)}</span></div>
+    ${selectedSvc.description?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.5;">${selectedSvc.description}</div>`:''}`;
+
+  loadSlots();
+  goStep(0);
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function resetAndClose(){
+  bDate='';bTime='';bName='';bPhone='';bEmail='';bNotes='';selectedSvc=null;
+  ['b-name','b-phone','b-email','b-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('b-time').value='';
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  closeModal();
+}
+
+function goStep(n){[0,1,2,3].forEach(i=>document.getElementById('step-'+i).style.display=i===n?'block':'none');}
+
+function goStep2(){
+  const date=document.getElementById('b-date').value;
+  const time=document.getElementById('b-time').value;
+  if(!date||!time){showToast('Selecione data e horário','orange');return;}
+  bDate=date; bTime=time;
+  goStep(2);
+}
+
+function loadSlots(){
+  const slots=['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+  const grid=document.getElementById('slots-grid');
+  if(!grid)return;
+  grid.innerHTML=slots.map(t=>`<button class="slot-btn" onclick="selectSlot('${t}',this)">${t}</button>`).join('');
+  document.getElementById('b-time').value='';
+}
+
+function selectSlot(time, el){
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('b-time').value=time;
+}
+
+async function submitBooking(){
+  const name=document.getElementById('b-name').value.trim();
+  const phone=document.getElementById('b-phone').value.trim();
+  if(!name||!phone){showToast('Preencha nome e WhatsApp','orange');return;}
+  bName=name; bPhone=phone;
+  bEmail=document.getElementById('b-email').value;
+  bNotes=document.getElementById('b-notes').value;
+
+  const btn=document.getElementById('btn-confirm');
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  const appt={
+    clientName:bName, clientPhone:bPhone, clientEmail:bEmail,
+    serviceId:selectedSvc.id, serviceName:selectedSvc.name,
+    servicePrice:Number(selectedSvc.price||0),
+    serviceDuration:Number(selectedSvc.duration||0),
+    date:bDate, time:bTime, notes:bNotes,
+    status:'pending', source:'catalog', studioId,
+    createdAt:CAT.serverTimestamp(),
+  };
+
+  try{
+    // salva na agenda do estúdio
+    await CAT.addDoc(CAT.collection(CAT.db,'studios',studioId,'appointments'),appt);
+    // salva também em public_appointments
+    await CAT.addDoc(CAT.collection(CAT.db,'public_appointments'),appt);
+    showSuccess(appt);
+    btn.disabled=false; btn.textContent='✅ Confirmar Agendamento';
+  }catch(e){
+    btn.disabled=false; btn.textContent='✅ Confirmar Agendamento';
+    showToast('Erro ao salvar. Tente novamente.','red');
+  }
+}
+
+function showSuccess(appt){
+  const dateFmt=new Date(appt.date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('confirm-card').innerHTML=`
+    <div class="ccard-row"><span class="ccard-icon">✂️</span><div class="ccard-text"><b>${appt.serviceName}</b><br>${appt.serviceDuration} minutos · R$ ${fmt(appt.servicePrice)}</div></div>
+    <div class="ccard-row"><span class="ccard-icon">📅</span><div class="ccard-text"><b>${dateFmt}</b><br>às ${appt.time}</div></div>
+    <div class="ccard-row"><span class="ccard-icon">👤</span><div class="ccard-text">${appt.clientName}<br>${appt.clientPhone}</div></div>
+    ${catalogData.address?`<div class="ccard-row"><span class="ccard-icon">📍</span><div class="ccard-text">${catalogData.address}</div></div>`:''}`;
+
+  // Mensagem para o CLIENTE
+  const clientPhone=bPhone.replace(/\D/g,'');
+  const msgClient=encodeURIComponent(
+    `✅ *${catalogData.companyName||'Estúdio Emily Lima'}*\n\n`+
+    `Olá ${appt.clientName}! Seu agendamento foi *confirmado*! 🎉\n\n`+
+    `✂️ *Serviço:* ${appt.serviceName}\n`+
+    `📅 *Data:* ${dateFmt}\n`+
+    `⏰ *Horário:* ${appt.time}\n`+
+    `💰 *Valor:* R$ ${fmt(appt.servicePrice)}\n\n`+
+    `${catalogData.address?'📍 *Local:* '+catalogData.address+'\n':''}`+
+    `${catalogData.whatsapp||catalogData.phone?'📞 *Contato:* '+(catalogData.whatsapp||catalogData.phone)+'\n':''}`+
+    `\nAguardamos você! 💄✨`
+  );
+
+  // Mensagem para o ESTÚDIO
+  const studioPhone=(catalogData.whatsapp||catalogData.phone||'').replace(/\D/g,'');
+  const msgStudio=encodeURIComponent(
+    `🌐 *Novo Agendamento Online!*\n\n`+
+    `👤 *Cliente:* ${appt.clientName}\n`+
+    `📱 *WhatsApp:* ${appt.clientPhone}\n`+
+    `${appt.clientEmail?'📧 *E-mail:* '+appt.clientEmail+'\n':''}`+
+    `✂️ *Serviço:* ${appt.serviceName}\n`+
+    `📅 *Data:* ${dateFmt}\n`+
+    `⏰ *Horário:* ${appt.time}\n`+
+    `💰 *Valor:* R$ ${fmt(appt.servicePrice)}\n`+
+    `${appt.notes?'📝 *Obs:* '+appt.notes+'\n':''}`+
+    `\n✅ Salvo automaticamente na sua agenda!`
+  );
+
+  document.getElementById('btn-wa-client').onclick=()=>{
+    // Abre WhatsApp do cliente com confirmação
+    window.open(`https://wa.me/55${clientPhone}?text=${msgClient}`,'_blank');
+    // Após 1s, notifica o estúdio também
+    if(studioPhone){
+      setTimeout(()=>window.open(`https://wa.me/55${studioPhone}?text=${msgStudio}`,'_blank'),1200);
+    }
+  };
+
+  goStep(3);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function maskPhone(el){
+  let v=el.value.replace(/\D/g,'').substring(0,11);
+  if(v.length>6)v=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if(v.length>2)v=`(${v.slice(0,2)}) ${v.slice(2)}`;
+  else if(v.length>0)v=`(${v}`;
+  el.value=v;
+}
+
+let _tt;
+function showToast(msg,color='green'){
+  const t=document.getElementById('toast');
+  const c={green:'#1A7448',red:'#B02020',orange:'#B86010'};
+  t.textContent=msg; t.style.background=c[color]||c.green;
+  t.classList.add('show'); clearTimeout(_tt);
+  _tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
